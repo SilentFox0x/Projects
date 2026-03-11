@@ -1,0 +1,192 @@
+############## dataset ##############
+# code search net
+dataset_path:
+  java:
+    train_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources-before-05-12-00-used/csn/java/train.json'
+    valid_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources-before-05-12-00-used/csn/java/valid.json'
+    test_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources-before-05-12-00-used/csn/java/test.jsonl'
+  javascript:
+    train_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources-before-05-12-00-used/csn/javascript/train.json'
+    valid_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources-before-05-12-00-used/csn/javascript/valid.json'
+    test_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources-before-05-12-00-used/csn/javascript/test.jsonl'
+  python:
+    train_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources/python/train.jsonl'
+    valid_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources/python/valid.jsonl'
+    test_data_path: '/mnt/disk2/liwei/01-code/Code-Watermark/variable-watermark/resources/python/test.jsonl'
+############## dataset ##############
+
+############## Hyperparameter ##############
+lr: 0.00025
+epoch: 5
+train_batch_size: 16
+test_batch_size: 16
+
+max_statements: 5
+max_statement_tokens: 30
+max_node_token_len: 20
+use_type_or_text: 'text' # text/type
+func_max_token_len: 512
+############## Hyperparameter ##############
+
+
+############## loss ##############
+use_perplexity: False
+#w_loss_ratio: 1
+#perplexity_ratio: 0.01
+#only_w_loss_epoch: 2
+
+use_var_ce_loss: False
+#w_loss_weight: 1
+#var_ce_loss_weight: 1
+#begin_use_var_ce_loss_epoch: 1
+
+use_var_ce_and_cos_loss: False
+#w_loss_weight: 10
+#var_ce_and_cos_loss_weight: 1
+
+use_var_ce_and_triplet_loss: False
+#w_loss_weight: 15
+#var_ce_loss_weight: 1
+#var_triplet_loss_weight: 5
+
+
+use_cos_loss: False
+#w_loss_weight: 1
+#var_cos_weight: 1
+#begin_use_var_cos_loss_epoch: 1
+
+use_infoNEC_loss: False
+#nce_t: 0.05
+
+use_triplet_loss: False
+#triplet_loss_margin: 0.5
+#w_loss_weight: 1
+#triplet_loss_weight: 1
+#begin_use_triplet_loss_epoch: 1
+
+use_distill_loss: False
+#w_loss_weight: 0.6
+#distill_loss_weight: 0.4
+#begin_use_distill_loss_epoch: 1
+#t_norm_way: 'ignore'  # 'ignore', 'softmax', 'L2'
+#temperature: 1.0
+
+use_distill_and_mse_loss: True
+w_loss_weight: 5
+distill_loss_weight: 1
+feat_mse_loss_weight: 1
+granularity: var
+begin_epoch: 1
+t_norm_way: 'ignore'  # 'ignore', 'softmax', 'L2'
+temperature: 1.0
+############## loss ##############
+
+
+
+############## tokenizer ##############
+tokenizer_type: 'codebert'
+tokenizer_config:
+  bpe:
+    tokenizer_path: '/home/liwei/Code-Watermark/variable-watermark/resources/03-16-21-00/bpe.model'
+    vocab_size: 5000
+    word_emb_dims: 128
+    node_encoder_in_dims: 128
+  codegpt:
+    tokenizer_path: '/home/liwei/.cache/huggingface/CodeGPT-small-java-adaptedGPT2'
+    vocab_size: 50260
+    word_emb_dims: 768
+    node_encoder_in_dims: 768
+  codebert:
+    tokenizer_path: 'microsoft/codebert-base'
+    vocab_size: 50265
+    word_emb_dims: 512
+    node_encoder_in_dims: 512
+############## tokenizer ##############
+
+############## model set ##############
+node_encoder_out_dims: 512
+node_encoder_lstm_layers: 1
+
+FuncGru:
+  in_dims: 512
+  out_dims: 512
+  n_layers: 2
+
+VarDecoder:
+  cat_func_g_emb: False
+  decoder_type: gru
+  lstm:
+  #  cat_in_dims: 1024  # func_dim + hiding_second_out_dim
+  #  cat_out_dims: 512
+    in_dims: 512  # func_dim + hiding_second_out_dim
+    out_dims: 512
+    n_layers: 1
+  gru:
+    in_dims: 512  # func_dim + hiding_second_out_dim
+    out_dims: 512
+    n_layers: 1
+  topk: null
+
+
+
+VarSelector:
+#  input_dim: 8832 # watermark_emb_dims + node_encoder_out_dims + second_out_dim * second_heads
+#  hidden_dim: 512
+  input_dim: 1152 # watermark_emb_dims + node_encoder_out_dims + second_out_dim
+  hidden_dim: 64
+  use_mask: True
+
+#watermark_decoder_in_dims: 4096  # revealing.second_out_dim * revealing.second_heads
+#watermark_decoder_hidden_dims: 512
+
+watermark_decoder_in_dims: 512   # revealing.second_out_dim
+watermark_decoder_hidden_dims: 128
+
+watermark_len: 4
+watermark_emb_dims: 128
+
+
+gnn_type: "gat" # gcn/gat
+#gnn_in_dim: 768
+#gnn_out_dim: 768
+#num_heads: 8
+
+hiding:
+  first_in_dim: 512
+  first_out_dim: 512
+  first_heads: 4
+  second_out_dim: 512
+
+revealing:
+  first_in_dim: 512
+  first_out_dim: 512
+  first_heads: 4
+  second_out_dim: 512
+  second_heads: 8
+
+gat:
+  feat_drop: 0.0
+  attn_drop: 0.0
+
+share_gnn: False
+
+hiding_use_gnn: True
+hiding_layers: 2
+#hiding_use_emb_from: "var" # var/mean/max
+#hiding_merge_emb_from: "w_emb"  # "w_emb + g_emb + var_emb"
+
+revealing_use_gnn: True
+revealing_layers: 2
+#revealing_use_emb_from: "var"      # var/mean/max
+#revealing_merge_emb_from: "g_emb" # "g_emb + var_emb"
+
+############## model set ##############
+
+
+varclr_path: '/home/liwei/Code-Watermark/variable-watermark/resources/varclr-saved/varclr_bert'
+#codebert_path: '/mnt/members/liwei/.cache/huggingface/codebert-base'
+code_bert_path: '/home/liwei/.cache/huggingface/codebert-base-mlm'
+code_bert_output_dim: 768
+
+
+model_save_path: '/mnt/disk2/liwei/01-code/variable_watermark_weights'
